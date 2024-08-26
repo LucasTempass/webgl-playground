@@ -12,5 +12,9 @@
     "prettier": "^3.3.3",
     "typescript": "^5.5.3",
     "vite": "^5.4.1"
+  },
+  "dependencies": {
+    "twgl-base.js": "^5.5.3",
+    "twgl.js": "^5.5.4"
   }
 }
