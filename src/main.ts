@@ -1,108 +1,47 @@
 import "./style.css";
-
-function getWebGLContext(): WebGL2RenderingContext {
-  const canvas = document.getElementById("canvas");
-
-  if (!(canvas instanceof HTMLCanvasElement)) {
-    throw new Error("Canvas not found");
-  }
-
-  const context = canvas?.getContext("webgl2");
-
-  if (!context) {
-    throw new Error("WebGL 2 not supported");
-  }
-
-  return context;
-}
-
-const vertexShaderSource = `#version 300 es
-in vec3 position;
-in vec3 color;
-uniform mat4 model;
-out vec4 finalColor;
-void main() {
-    gl_Position = model * vec4(position, 1.0);
-    finalColor = vec4(color, 1.0);
-}`;
-
-// Fragment shader source code
-const fragmentShaderSource = `#version 300 es
-precision mediump float;
-in vec4 finalColor;
-out vec4 color;
-void main() {
-    color = finalColor;
-}`;
+import { compileShader } from "./utils/compileShader";
+import { VertexAttribute } from "./utils/attributes.ts";
+import { fragmentShaderContent } from "./shaders/fragmentShader.ts";
+import { vertexShaderContent } from "./shaders/vertexShader.ts";
+import { getWebGLContext } from "./utils/webGlContext.ts";
 
 const gl = getWebGLContext();
 
-function compileShader(
-  gl: WebGL2RenderingContext,
-  source: string,
-  type: number,
-): WebGLProgram | null {
-  const shader = gl.createShader(type);
-  if (!shader) {
-    console.error("Error creating shader");
-    return null;
-  }
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    console.error("Error compiling shader:", gl.getShaderInfoLog(shader));
-    gl.deleteShader(shader);
-    return null;
-  }
-  return shader;
-}
+const vertexShader = compileShader(gl, vertexShaderContent, gl.VERTEX_SHADER);
 
-const vertexShader: WebGLProgram | null = compileShader(
+const fragmentShader = compileShader(
   gl,
-  vertexShaderSource,
-  gl.VERTEX_SHADER,
-);
-
-const fragmentShader: WebGLProgram | null = compileShader(
-  gl,
-  fragmentShaderSource,
+  fragmentShaderContent,
   gl.FRAGMENT_SHADER,
 );
 
-if (!vertexShader || !fragmentShader) {
-  throw new Error("Error compiling shaders");
-}
-
 const shaderProgram = gl.createProgram();
 
-gl.attachShader(shaderProgram as WebGLProgram, vertexShader);
-gl.attachShader(shaderProgram as WebGLProgram, fragmentShader);
-gl.linkProgram(shaderProgram as WebGLProgram);
+if (!shaderProgram) {
+  throw new Error("Error creating shader program");
+}
 
-if (!gl.getProgramParameter(shaderProgram as WebGLProgram, gl.LINK_STATUS)) {
+gl.attachShader(shaderProgram, vertexShader);
+gl.attachShader(shaderProgram, fragmentShader);
+gl.linkProgram(shaderProgram);
+
+if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
   console.error(
     "Error linking shader program:",
-    gl.getProgramInfoLog(shaderProgram as WebGLProgram),
+    gl.getProgramInfoLog(shaderProgram),
   );
 }
 
-// Use the shader program
 gl.useProgram(shaderProgram);
 
-let uniformLocation = gl.getUniformLocation(
-  shaderProgram as WebGLProgram,
-  "model",
-);
+const uniformLocation = gl.getUniformLocation(shaderProgram, "model");
 
-// Set up vertex data buffer
 const vao = setupGeometry(gl);
 
-// Enable depth testing
 gl.enable(gl.DEPTH_TEST);
 
 function render(time: number) {
-  // Clear color and depth buffers
-  // gl.clearColor(1.0, 1.0, 1.0, 1.0);
+  // limpa buffers de cor e profundidade
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   gl.lineWidth(10);
@@ -128,7 +67,6 @@ function render(time: number) {
 
   gl.uniformMatrix4fv(uniformLocation, false, model);
 
-  // Draw the triangles
   gl.bindVertexArray(vao);
   gl.drawArrays(gl.TRIANGLES, 0, 18);
 
@@ -137,7 +75,7 @@ function render(time: number) {
   requestAnimationFrame(render);
 }
 
-// Start the rendering loop
+// inicia o loop de renderização
 requestAnimationFrame(render);
 
 function setupGeometry(gl: WebGL2RenderingContext) {
@@ -174,10 +112,8 @@ function setupGeometry(gl: WebGL2RenderingContext) {
   gl.bindBuffer(gl.ARRAY_BUFFER, VBO);
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
-  // Specify the layout of the vertex data
-  // Position attribute (location = 0)
   gl.vertexAttribPointer(
-    0,
+    VertexAttribute.POSITION,
     3,
     gl.FLOAT,
     false,
@@ -186,9 +122,8 @@ function setupGeometry(gl: WebGL2RenderingContext) {
   );
   gl.enableVertexAttribArray(0);
 
-  // Color attribute (location = 1)
   gl.vertexAttribPointer(
-    1,
+    VertexAttribute.COLOR,
     3,
     gl.FLOAT,
     false,
