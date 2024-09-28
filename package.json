@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@types/obj-file-parser": "^0.5.2",
+    "gl-matrix": "^3.4.3",
     "obj-file-parser": "^0.6.2",
     "twgl-base.js": "^5.5.3",
     "twgl.js": "^5.5.4"
