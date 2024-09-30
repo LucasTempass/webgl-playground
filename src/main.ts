@@ -4,7 +4,8 @@ import { VertexAttribute } from "./utils/attributes.ts";
 import { fragmentShaderContent } from "./shaders/fragmentShader.ts";
 import { vertexShaderContent } from "./shaders/vertexShader.ts";
 import { getWebGLContext } from "./utils/webGlContext.ts";
-import { mat4 } from 'gl-matrix';
+import { mat4 } from "gl-matrix";
+import { onKeyDown } from "./handlers.ts";
 
 const gl = getWebGLContext();
 
@@ -52,65 +53,26 @@ const transformations = {
 let isDragging = false;
 let lastMousePosition = { x: 0, y: 0 };
 
-window.addEventListener("mousedown", (event) => {
-  isDragging = true;
-  lastMousePosition = { x: event.clientX, y: event.clientY };
-});
-
-window.addEventListener("mouseup", () => {
-  isDragging = false;
-});
-
-window.addEventListener("mousemove", (event) => {
-  if (isDragging) {
-    const deltaX = event.clientX - lastMousePosition.x;
-    const deltaY = event.clientY - lastMousePosition.y;
-
-    transformations.rotation.y += deltaX * 0.01;
-    transformations.rotation.x += deltaY * 0.01;
-
-    lastMousePosition = { x: event.clientX, y: event.clientY };
-  }
-});
-
-// Listener para eventos de teclado
-window.addEventListener("keydown", (event) => {
-  switch (event.key) {
-    // Translação
-    case "ArrowUp": transformations.translation.y += 0.1; break;
-    case "ArrowDown": transformations.translation.y -= 0.1; break;
-    case "ArrowLeft": transformations.translation.x -= 0.1; break;
-    case "ArrowRight": transformations.translation.x += 0.1; break;
-    // Rotação
-    case "w": transformations.rotation.x += 0.1; break;
-    case "s": transformations.rotation.x -= 0.1; break;
-    case "a": transformations.rotation.y -= 0.1; break;
-    case "d": transformations.rotation.y += 0.1; break;
-    case "q": transformations.rotation.z += 0.1; break;
-    case "e": transformations.rotation.z -= 0.1; break;
-    // Escala
-    case "+": transformations.scale += 0.1; break;
-    case "-": transformations.scale -= 0.1; break;
-  }
-});
-
-function render(time: number) {
+function render(_: number) {
   // limpa buffers de cor e profundidade
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   const model = mat4.create();
+
   mat4.translate(model, model, [
-    transformations.translation.x, 
-    transformations.translation.y, 
-    transformations.translation.z
+    transformations.translation.x,
+    transformations.translation.y,
+    transformations.translation.z,
   ]);
+
   mat4.rotateX(model, model, transformations.rotation.x);
   mat4.rotateY(model, model, transformations.rotation.y);
   mat4.rotateZ(model, model, transformations.rotation.z);
+
   mat4.scale(model, model, [
-    transformations.scale, 
-    transformations.scale, 
-    transformations.scale
+    transformations.scale,
+    transformations.scale,
+    transformations.scale,
   ]);
 
   gl.uniformMatrix4fv(uniformLocation, false, model);
@@ -187,3 +149,25 @@ function setupGeometry(gl: WebGL2RenderingContext) {
 
   return VAO;
 }
+
+window.addEventListener("mousedown", (event) => {
+  isDragging = true;
+  lastMousePosition = { x: event.clientX, y: event.clientY };
+});
+
+window.addEventListener("mouseup", () => {
+  isDragging = false;
+});
+
+window.addEventListener("mousemove", (event) => {
+  if (!isDragging) {
+    return;
+  }
+  const deltaX = event.clientX - lastMousePosition.x;
+  const deltaY = event.clientY - lastMousePosition.y;
+  transformations.rotation.y += deltaX * 0.01;
+  transformations.rotation.x += deltaY * 0.01;
+  lastMousePosition = { x: event.clientX, y: event.clientY };
+});
+
+window.addEventListener("keydown", (e) => onKeyDown(e, transformations));
