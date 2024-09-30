@@ -1,11 +1,12 @@
 import "./style.css";
 import { compileShader } from "./utils/compileShader";
-import { VertexAttribute } from "./utils/attributes.ts";
 import { fragmentShaderContent } from "./shaders/fragmentShader.ts";
 import { vertexShaderContent } from "./shaders/vertexShader.ts";
 import { getWebGLContext } from "./utils/webGlContext.ts";
 import { mat4 } from "gl-matrix";
 import { onKeyDown } from "./handlers.ts";
+import { parseSimpleObject } from "./objects/parser.ts";
+import { setupGeometry } from "./setupGeometry.ts";
 
 const gl = getWebGLContext();
 
@@ -38,7 +39,15 @@ gl.useProgram(shaderProgram);
 
 const uniformLocation = gl.getUniformLocation(shaderProgram, "model");
 
-const vao = setupGeometry(gl);
+const obj = parseSimpleObject().models[0];
+
+const objectVertices = obj.vertices
+  .map((vertex) => [vertex.x, vertex.y, vertex.z, 0, 1.0, 0])
+  .flat();
+
+const vertices = new Float32Array(objectVertices);
+
+const vao = setupGeometry(gl, vertices);
 
 gl.enable(gl.DEPTH_TEST);
 
@@ -78,77 +87,13 @@ function render(_: number) {
   gl.uniformMatrix4fv(uniformLocation, false, model);
 
   gl.bindVertexArray(vao);
-  gl.drawArrays(gl.TRIANGLES, 0, 18);
-
-  gl.drawArrays(gl.POINTS, 0, 18);
+  gl.drawArrays(gl.TRIANGLES, 0, obj.vertices.length);
 
   requestAnimationFrame(render);
 }
 
 // inicia o loop de renderização
 requestAnimationFrame(render);
-
-function setupGeometry(gl: WebGL2RenderingContext) {
-  // Define the vertex data (positions and colors)
-  const vertices = new Float32Array([
-    // Base of the pyramid: 2 triangles
-    // x    y    z    r    g    b
-    -0.5, -0.5, -0.5, 1.0, 1.0, 0.0, -0.5, -0.5, 0.5, 0.0, 1.0, 1.0, 0.5, -0.5,
-    -0.5, 1.0, 0.0, 1.0,
-
-    -0.5, -0.5, 0.5, 1.0, 1.0, 0.0, 0.5, -0.5, 0.5, 0.0, 1.0, 1.0, 0.5, -0.5,
-    -0.5, 1.0, 0.0, 1.0,
-
-    // Sides of the pyramid
-    -0.5, -0.5, -0.5, 1.0, 1.0, 0.0, 0.0, 0.5, 0.0, 1.0, 1.0, 0.0, 0.5, -0.5,
-    -0.5, 1.0, 1.0, 0.0,
-
-    -0.5, -0.5, -0.5, 1.0, 0.0, 1.0, 0.0, 0.5, 0.0, 1.0, 0.0, 1.0, -0.5, -0.5,
-    0.5, 1.0, 0.0, 1.0,
-
-    -0.5, -0.5, 0.5, 1.0, 1.0, 0.0, 0.0, 0.5, 0.0, 1.0, 1.0, 0.0, 0.5, -0.5,
-    0.5, 1.0, 1.0, 0.0,
-
-    0.5, -0.5, 0.5, 0.0, 1.0, 1.0, 0.0, 0.5, 0.0, 0.0, 1.0, 1.0, 0.5, -0.5,
-    -0.5, 0.0, 1.0, 1.0,
-  ]);
-
-  // Create and bind the VAO
-  const VAO = gl.createVertexArray();
-  gl.bindVertexArray(VAO);
-
-  // Create a buffer for the vertex data
-  const VBO = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, VBO);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-  gl.vertexAttribPointer(
-    VertexAttribute.POSITION,
-    3,
-    gl.FLOAT,
-    false,
-    6 * Float32Array.BYTES_PER_ELEMENT,
-    0,
-  );
-  gl.enableVertexAttribArray(0);
-
-  gl.vertexAttribPointer(
-    VertexAttribute.COLOR,
-    3,
-    gl.FLOAT,
-    false,
-    6 * Float32Array.BYTES_PER_ELEMENT,
-    3 * Float32Array.BYTES_PER_ELEMENT,
-  );
-
-  gl.enableVertexAttribArray(1);
-
-  // Unbind the VBO and VAO (good practice)
-  gl.bindBuffer(gl.ARRAY_BUFFER, null);
-  gl.bindVertexArray(null);
-
-  return VAO;
-}
 
 window.addEventListener("mousedown", (event) => {
   isDragging = true;
