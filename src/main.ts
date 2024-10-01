@@ -52,7 +52,7 @@ const transformations = {
 let isDragging = false;
 let lastMousePosition = { x: 0, y: 0 };
 
-const mesh = Mesh.fromObj(parseSimpleObject());
+const mesh = new Mesh(parseSimpleObject());
 
 const vertexBuffer = gl.createBuffer();
 
@@ -104,8 +104,23 @@ function render(_: number) {
     3,
     gl.FLOAT,
     false,
-    3 * Float32Array.BYTES_PER_ELEMENT,
+    6 * Float32Array.BYTES_PER_ELEMENT,
     0,
+  );
+
+  const colorAttributeLocation = gl.getAttribLocation(
+    shaderProgram,
+    "base_color",
+  );
+
+  gl.enableVertexAttribArray(colorAttributeLocation);
+  gl.vertexAttribPointer(
+    colorAttributeLocation,
+    3,
+    gl.FLOAT,
+    false,
+    6 * Float32Array.BYTES_PER_ELEMENT,
+    3 * Float32Array.BYTES_PER_ELEMENT,
   );
 
   gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_INT, 0);

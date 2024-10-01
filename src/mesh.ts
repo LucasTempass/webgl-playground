@@ -4,34 +4,28 @@ export default class Mesh {
   vertices: Float32Array;
   indices: Uint32Array;
 
-  constructor(vertices: Float32Array, indices: Uint32Array) {
-    this.vertices = vertices;
-    this.indices = indices;
-  }
+  constructor(model: ObjModel) {
+    const serializedVertices: number[] = [];
+    const serializedIndices: number[] = [];
 
-  static fromObj(model: ObjModel): Mesh {
-    const serializedVertices = [];
-    let vertexCount = 0;
-    const serializedIndices = [];
+    const faceVertices = model.faces.map((face) => face.vertices).flat();
 
-    for (const face of model.faces) {
-      for (const faceVertex of face.vertices) {
-        const positionIndex = faceVertex.vertexIndex - 1;
+    faceVertices.forEach((faceVertex, index) => {
+      const positionIndex = faceVertex.vertexIndex - 1;
 
-        const position = model.vertices[positionIndex];
+      const position = model.vertices[positionIndex];
 
-        serializedVertices.push(position?.x || 0);
-        serializedVertices.push(position?.y || 0);
-        serializedVertices.push(position?.z || 0);
+      serializedVertices.push(position?.x || 0);
+      serializedVertices.push(position?.y || 0);
+      serializedVertices.push(position?.z || 0);
+      serializedVertices.push(Math.random());
+      serializedVertices.push(Math.random());
+      serializedVertices.push(Math.random());
 
-        serializedIndices.push(vertexCount);
-        vertexCount++;
-      }
-    }
+      serializedIndices.push(index);
+    });
 
-    const meshVertices = Float32Array.from(serializedVertices);
-    const meshIndices = Uint32Array.from(serializedIndices);
-
-    return new Mesh(meshVertices, meshIndices);
+    this.vertices = Float32Array.from(serializedVertices);
+    this.indices = Uint32Array.from(serializedIndices);
   }
 }
