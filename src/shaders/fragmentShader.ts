@@ -1,7 +1,10 @@
 export const fragmentShaderContent = `#version 300 es
-precision mediump float;
-in vec4 finalColor;
-out vec4 color;
+precision highp float;
+
+in vec4 color;
+
+out vec4 fragment_color;
+
 void main() {
-    color = finalColor;
+    fragment_color = color;
 }`;

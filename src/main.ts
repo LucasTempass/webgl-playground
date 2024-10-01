@@ -6,7 +6,7 @@ import { getWebGLContext } from "./utils/webGlContext.ts";
 import { mat4 } from "gl-matrix";
 import { onKeyDown } from "./handlers.ts";
 import { parseSimpleObject } from "./objects/parser.ts";
-import { setupGeometry } from "./setupGeometry.ts";
+import Mesh from "./mesh.ts";
 
 const gl = getWebGLContext();
 
@@ -39,16 +39,6 @@ gl.useProgram(shaderProgram);
 
 const uniformLocation = gl.getUniformLocation(shaderProgram, "model");
 
-const obj = parseSimpleObject().models[0];
-
-const objectVertices = obj.vertices
-  .map((vertex) => [vertex.x, vertex.y, vertex.z, 0, 1.0, 0])
-  .flat();
-
-const vertices = new Float32Array(objectVertices);
-
-const vao = setupGeometry(gl, vertices);
-
 gl.enable(gl.DEPTH_TEST);
 
 // Variáveis para controle de transformações
@@ -62,7 +52,15 @@ const transformations = {
 let isDragging = false;
 let lastMousePosition = { x: 0, y: 0 };
 
+const mesh = Mesh.fromObj(parseSimpleObject());
+
+const vertexBuffer = gl.createBuffer();
+
+const indexBuffer = gl.createBuffer();
+
 function render(_: number) {
+  if (!shaderProgram) return;
+
   // limpa buffers de cor e profundidade
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -86,8 +84,31 @@ function render(_: number) {
 
   gl.uniformMatrix4fv(uniformLocation, false, model);
 
-  gl.bindVertexArray(vao);
-  gl.drawArrays(gl.TRIANGLES, 0, obj.vertices.length);
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, mesh.vertices, gl.STATIC_DRAW);
+
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indices, gl.STATIC_DRAW);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+  const positionAttributeLocation = gl.getAttribLocation(
+    shaderProgram,
+    "position",
+  );
+
+  gl.enableVertexAttribArray(positionAttributeLocation);
+  gl.vertexAttribPointer(
+    positionAttributeLocation,
+    3,
+    gl.FLOAT,
+    false,
+    3 * Float32Array.BYTES_PER_ELEMENT,
+    0,
+  );
+
+  gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_INT, 0);
 
   requestAnimationFrame(render);
 }
