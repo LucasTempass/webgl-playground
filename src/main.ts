@@ -62,6 +62,11 @@ async function main() {
   function render(_: number) {
     if (!shaderProgram) return;
 
+    const glCanvas = gl.canvas;
+    glCanvas.width = window.innerWidth;
+    glCanvas.height = window.innerHeight;
+    gl.viewport(0, 0, glCanvas.width, glCanvas.height);
+
     // limpa buffers de cor e profundidade
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
