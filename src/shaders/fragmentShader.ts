@@ -8,7 +8,6 @@ in vec3 position;
 // props. da superfície
 uniform float ka, kd, ks, q;
 uniform vec3 light_position, light_color;
-uniform vec3 camera_pos;
 
 out vec4 fragment_color;
 
@@ -21,7 +20,7 @@ void main() {
     vec3 diffuse = kd * diff * light_color;
 
     vec3 R = normalize(reflect(-L, N));
-    vec3 V = normalize(camera_pos - position);
+    vec3 V = normalize(position);
     float spec = max(dot(R,V),0.0);
    
     vec3 specular = ks * pow(spec, q) * light_color;

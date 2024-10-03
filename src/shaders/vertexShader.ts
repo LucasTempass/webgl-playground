@@ -1,6 +1,7 @@
 export const vertexShaderContent = `#version 300 es
 in vec3 base_position;
 in vec3 base_color;
+in vec3 base_normal;
 
 uniform mat4 model;
 
@@ -12,6 +13,6 @@ void main() {
     gl_Position = model * vec4(base_position, 1.0);
     color = base_color;
     // reduz para vec3 para facilitar cálculos no fragment shader
-    scaled_normal = vec3(gl_Position);
+    scaled_normal = vec3(model * vec4(base_normal, 1.0));
     position = vec3(gl_Position);
 }`;

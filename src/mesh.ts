@@ -11,16 +11,22 @@ export default class Mesh {
     const faceVertices = model.faces.map((face) => face.vertices).flat();
 
     faceVertices.forEach((faceVertex, index) => {
-      const positionIndex = faceVertex.vertexIndex - 1;
+      const position = model.vertices[faceVertex.vertexIndex - 1];
 
-      const position = model.vertices[positionIndex];
+      const normal = model.vertexNormals[faceVertex.vertexNormalIndex - 1];
 
+      // coordenadas
       serializedVertices.push(position?.x || 0);
       serializedVertices.push(position?.y || 0);
       serializedVertices.push(position?.z || 0);
+      // cores
       serializedVertices.push(Math.random());
       serializedVertices.push(Math.random());
       serializedVertices.push(Math.random());
+      // normal
+      serializedVertices.push(normal?.x || 0);
+      serializedVertices.push(normal?.y || 0);
+      serializedVertices.push(normal?.z || 0);
 
       serializedIndices.push(index);
     });

@@ -40,6 +40,25 @@ async function main() {
 
   const uniformLocation = gl.getUniformLocation(shaderProgram, "model");
 
+  gl.uniform1f(gl.getUniformLocation(shaderProgram, "ka"), 0.2);
+  gl.uniform1f(gl.getUniformLocation(shaderProgram, "ks"), 0.5);
+  gl.uniform1f(gl.getUniformLocation(shaderProgram, "kd"), 0.5);
+  gl.uniform1f(gl.getUniformLocation(shaderProgram, "q"), 5.0);
+
+  gl.uniform3f(
+    gl.getUniformLocation(shaderProgram, "light_position"),
+    0,
+    0,
+    -50,
+  );
+
+  gl.uniform3f(
+    gl.getUniformLocation(shaderProgram, "light_color"),
+    1.0,
+    1.0,
+    1.0,
+  );
+
   gl.enable(gl.DEPTH_TEST);
 
   // Variáveis para controle de transformações
@@ -101,7 +120,7 @@ async function main() {
 
     const positionAttributeLocation = gl.getAttribLocation(
       shaderProgram,
-      "position",
+      "base_position",
     );
 
     gl.enableVertexAttribArray(positionAttributeLocation);
@@ -110,7 +129,7 @@ async function main() {
       3,
       gl.FLOAT,
       false,
-      6 * Float32Array.BYTES_PER_ELEMENT,
+      9 * Float32Array.BYTES_PER_ELEMENT,
       0,
     );
 
@@ -125,8 +144,23 @@ async function main() {
       3,
       gl.FLOAT,
       false,
-      6 * Float32Array.BYTES_PER_ELEMENT,
+      9 * Float32Array.BYTES_PER_ELEMENT,
       3 * Float32Array.BYTES_PER_ELEMENT,
+    );
+
+    const normalAttributeLocation = gl.getAttribLocation(
+      shaderProgram,
+      "base_normal",
+    );
+
+    gl.enableVertexAttribArray(normalAttributeLocation);
+    gl.vertexAttribPointer(
+      normalAttributeLocation,
+      3,
+      gl.FLOAT,
+      false,
+      9 * Float32Array.BYTES_PER_ELEMENT,
+      6 * Float32Array.BYTES_PER_ELEMENT,
     );
 
     gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_INT, 0);
