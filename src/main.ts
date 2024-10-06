@@ -12,6 +12,7 @@ async function main() {
   const gl = getWebGLContext();
 
   const vertexShader = compileShader(gl, vertexShaderContent, gl.VERTEX_SHADER);
+
   const fragmentShader = compileShader(
     gl,
     fragmentShaderContent,
@@ -58,17 +59,19 @@ async function main() {
 
   gl.enable(gl.DEPTH_TEST);
 
-  const transformations = {
-    rotation: { x: 0, y: 0, z: 0 },
-    translation: { x: 0, y: 0, z: 0 },
-    scale: 2,
-  };
-
   let isDragging = false;
   let lastMousePosition = { x: 0, y: 0 };
 
   const models = await parseSimpleObjects("assets/models/book.obj");
-  const meshes = models.map((model) => new Mesh(model));
+  const meshes = models.map((m) => new Mesh(m));
+
+  const transformations = meshes.map(() => ({
+    rotation: { x: 0, y: 0, z: 0 },
+    translation: { x: 0, y: 0, z: 0 },
+    scale: 2,
+  }));
+
+  let selectedMeshIndex: number | null = 0;
 
   const buffers = meshes.map((mesh) => {
     const vertexBuffer = gl.createBuffer();
@@ -93,28 +96,30 @@ async function main() {
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    const model = mat4.create();
-
-    mat4.translate(model, model, [
-      transformations.translation.x,
-      transformations.translation.y,
-      transformations.translation.z,
-    ]);
-
-    mat4.rotateX(model, model, transformations.rotation.x);
-    mat4.rotateY(model, model, transformations.rotation.y);
-    mat4.rotateZ(model, model, transformations.rotation.z);
-
-    mat4.scale(model, model, [
-      transformations.scale,
-      transformations.scale,
-      transformations.scale,
-    ]);
-
-    gl.uniformMatrix4fv(uniformLocation, false, model);
-
     buffers.forEach((buffer, index) => {
       const mesh = meshes[index];
+
+      const transformation = transformations[index];
+
+      const model = mat4.create();
+
+      mat4.translate(model, model, [
+        transformation.translation.x,
+        transformation.translation.y,
+        transformation.translation.z,
+      ]);
+
+      mat4.rotateX(model, model, transformation.rotation.x);
+      mat4.rotateY(model, model, transformation.rotation.y);
+      mat4.rotateZ(model, model, transformation.rotation.z);
+
+      mat4.scale(model, model, [
+        transformation.scale,
+        transformation.scale,
+        transformation.scale,
+      ]);
+
+      gl.uniformMatrix4fv(uniformLocation, false, model);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer.vertexBuffer);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer.indexBuffer);
@@ -179,17 +184,26 @@ async function main() {
   });
 
   window.addEventListener("mousemove", (event) => {
-    if (!isDragging) {
+    if (!isDragging || selectedMeshIndex === null) {
       return;
     }
+
+    const transformation = transformations[selectedMeshIndex];
+
     const deltaX = event.clientX - lastMousePosition.x;
     const deltaY = event.clientY - lastMousePosition.y;
-    transformations.rotation.y += deltaX * 0.01;
-    transformations.rotation.x += deltaY * 0.01;
+
+    transformation.rotation.y += deltaX * 0.01;
+    transformation.rotation.x += deltaY * 0.01;
+
     lastMousePosition = { x: event.clientX, y: event.clientY };
   });
 
-  window.addEventListener("keydown", (e) => onKeyDown(e, transformations));
+  window.addEventListener("keydown", (e) => {
+    if (selectedMeshIndex !== null) {
+      onKeyDown(e, transformations[selectedMeshIndex]);
+    }
+  });
 }
 
 main();
