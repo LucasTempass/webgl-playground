@@ -7,6 +7,9 @@ import { mat4 } from "gl-matrix";
 import { onKeyDown } from "./handlers.ts";
 import { parseSimpleObjects } from "./objects/parser.ts";
 import Mesh from "./mesh.ts";
+import Camera from "./camera.ts";
+
+const camera = new Camera();
 
 async function main() {
   const gl = getWebGLContext();
@@ -94,6 +97,9 @@ async function main() {
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    const viewMatrixLocation = gl.getUniformLocation(shaderProgram, "view");
+    gl.uniformMatrix4fv(viewMatrixLocation, false, camera.viewMatrix);
+
     buffers.forEach((buffer, index) => {
       const mesh = meshes[index];
 
@@ -172,8 +178,35 @@ async function main() {
 
   requestAnimationFrame(render);
 
+  // src/main.ts
   window.addEventListener("keydown", (e) => {
     selectedMeshIndex = onKeyDown(e, transformations, selectedMeshIndex);
+  });
+
+  let isMouseDown = false;
+  let lastMouseX = 0;
+  let lastMouseY = 0;
+
+  window.addEventListener("mousedown", (e) => {
+    isMouseDown = true;
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+  });
+
+  window.addEventListener("mouseup", () => {
+    isMouseDown = false;
+  });
+
+  window.addEventListener("mousemove", (e) => {
+    if (!isMouseDown) return;
+
+    const deltaX = e.clientX - lastMouseX;
+    const deltaY = e.clientY - lastMouseY;
+
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+
+    camera.rotate(deltaY * 0.002, deltaX * 0.002);
   });
 }
 
