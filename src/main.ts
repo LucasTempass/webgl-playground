@@ -16,6 +16,8 @@ async function getDefault() {
   return await res.text();
 }
 
+const meshName = document.getElementById("meshNameValue") as HTMLHeadingElement;
+
 async function main() {
   const gl = getWebGLContext();
 
@@ -77,7 +79,7 @@ async function main() {
     scale: 2,
   }));
 
-  let selectedMeshIndex: number | null = 0;
+  let selectedMeshIndex: number | null = null;
 
   let buffers = meshes.map((mesh) => {
     const vertexBuffer = gl.createBuffer();
@@ -201,6 +203,11 @@ async function main() {
       selectedMeshIndex,
       camera,
     );
+
+    const selected =
+      selectedMeshIndex == null ? null : models[selectedMeshIndex];
+
+    meshName.innerText = selected?.name ?? "Nenhum";
   });
 
   let isMouseDown = false;
@@ -230,6 +237,12 @@ async function main() {
   });
 
   const fileInput = document.getElementById("fileInput") as HTMLInputElement;
+
+  const customFileButton = document.getElementById(
+    "customFileButton",
+  ) as HTMLButtonElement;
+
+  customFileButton.addEventListener("click", () => fileInput.click());
 
   fileInput.addEventListener("change", async (event) => {
     const file = (event.target as HTMLInputElement).files?.[0];
