@@ -58,9 +58,10 @@ async function main() {
   gl.uniform3f(
     gl.getUniformLocation(shaderProgram, "light_position"),
     0,
-    0,
-    -50,
+    10,
+    100,
   );
+
   gl.uniform3f(
     gl.getUniformLocation(shaderProgram, "light_color"),
     1.0,
