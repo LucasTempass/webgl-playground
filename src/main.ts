@@ -100,6 +100,17 @@ async function main() {
     const viewMatrixLocation = gl.getUniformLocation(shaderProgram, "view");
     gl.uniformMatrix4fv(viewMatrixLocation, false, camera.viewMatrix);
 
+    const projectionMatrixLocation = gl.getUniformLocation(
+      shaderProgram,
+      "projection",
+    );
+
+    gl.uniformMatrix4fv(
+      projectionMatrixLocation,
+      false,
+      camera.projectionMatrix,
+    );
+
     buffers.forEach((buffer, index) => {
       const mesh = meshes[index];
 

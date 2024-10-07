@@ -5,15 +5,22 @@ export default class Camera {
   position: vec3;
   rotation: vec3;
   viewMatrix: mat4;
+  projectionMatrix: mat4;
 
   constructor(
-    position: vec3 = vec3.fromValues(0, 0, 0),
+    position: vec3 = vec3.fromValues(0, 0, 1),
     rotation: vec3 = vec3.create(),
+    fov: number = 45,
+    aspect: number = window.innerWidth / window.innerHeight,
+    near: number = 0.1,
+    far: number = 10000,
   ) {
     this.position = position;
     this.rotation = rotation;
     this.viewMatrix = mat4.create();
+    this.projectionMatrix = mat4.create();
     this.updateViewMatrix();
+    this.updateProjectionMatrix(fov, aspect, near, far);
   }
 
   updateViewMatrix() {
@@ -50,6 +57,21 @@ export default class Camera {
     this.viewMatrix[13] = -vec3.dot(yaxis, this.position);
     this.viewMatrix[14] = -vec3.dot(zaxis, this.position);
     this.viewMatrix[15] = 1;
+  }
+
+  updateProjectionMatrix(
+    fov: number,
+    aspect: number,
+    near: number,
+    far: number,
+  ) {
+    mat4.perspective(
+      this.projectionMatrix,
+      fov * (Math.PI / 180),
+      aspect,
+      near,
+      far,
+    );
   }
 
   moveForward(distance: number) {
