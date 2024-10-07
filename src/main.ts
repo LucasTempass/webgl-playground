@@ -189,9 +189,13 @@ async function main() {
 
   requestAnimationFrame(render);
 
-  // src/main.ts
   window.addEventListener("keydown", (e) => {
-    selectedMeshIndex = onKeyDown(e, transformations, selectedMeshIndex);
+    selectedMeshIndex = onKeyDown(
+      e,
+      transformations,
+      selectedMeshIndex,
+      camera,
+    );
   });
 
   let isMouseDown = false;
@@ -217,7 +221,7 @@ async function main() {
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
 
-    camera.rotate(deltaY * 0.002, deltaX * 0.002);
+    camera.rotate(deltaY * 0.001, deltaX * 0.001);
   });
 }
 

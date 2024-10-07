@@ -1,3 +1,5 @@
+import Camera from "./camera.ts";
+
 interface Point2D {
   x: number;
   y: number;
@@ -17,15 +19,48 @@ export function onKeyDown(
   event: KeyboardEvent,
   transformations: Transformations[],
   index: number | null,
+  camera: Camera,
 ): number | null {
   const transformation: Transformations | null =
     index == null ? null : transformations[index];
 
-  if (!transformation) return getIndex(event, index);
+  if (!transformation) {
+    updateCamera(event, camera);
+    return getIndex(event, index);
+  }
 
   updateTransformation(event, transformation);
 
   return getIndex(event, index);
+}
+
+function updateCamera(event: KeyboardEvent, camera: Camera) {
+  switch (event.key) {
+    case "w":
+      camera.moveForward(0.1);
+      break;
+    case "s":
+      camera.moveForward(-0.1);
+      break;
+    case "a":
+      camera.moveRight(-0.1);
+      break;
+    case "d":
+      camera.moveRight(0.1);
+      break;
+    case "ArrowUp":
+      camera.moveUp(0.1);
+      break;
+    case "ArrowDown":
+      camera.moveUp(-0.1);
+      break;
+    case "ArrowLeft":
+      camera.rotate(0, -0.1);
+      break;
+    case "ArrowRight":
+      camera.rotate(0, 0.1);
+      break;
+  }
 }
 
 function getIndex(event: KeyboardEvent, index: number | null): number | null {
