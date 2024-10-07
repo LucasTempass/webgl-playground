@@ -3,6 +3,7 @@ import { ObjModel } from "obj-file-parser";
 export default class Mesh {
   vertices: Float32Array;
   indices: Uint32Array;
+  name: string;
 
   constructor(model: ObjModel) {
     const serializedVertices: number[] = [];
@@ -33,5 +34,6 @@ export default class Mesh {
 
     this.vertices = Float32Array.from(serializedVertices);
     this.indices = Uint32Array.from(serializedIndices);
+    this.name = model.name;
   }
 }

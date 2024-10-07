@@ -20,6 +20,7 @@ async function main() {
   );
 
   const shaderProgram = gl.createProgram();
+
   if (!shaderProgram) {
     throw new Error("Error creating shader program");
   }
@@ -58,9 +59,6 @@ async function main() {
   );
 
   gl.enable(gl.DEPTH_TEST);
-
-  let isDragging = false;
-  let lastMousePosition = { x: 0, y: 0 };
 
   const models = await parseSimpleObjects("assets/models/book.obj");
   const meshes = models.map((m) => new Mesh(m));
@@ -174,35 +172,8 @@ async function main() {
 
   requestAnimationFrame(render);
 
-  window.addEventListener("mousedown", (event) => {
-    isDragging = true;
-    lastMousePosition = { x: event.clientX, y: event.clientY };
-  });
-
-  window.addEventListener("mouseup", () => {
-    isDragging = false;
-  });
-
-  window.addEventListener("mousemove", (event) => {
-    if (!isDragging || selectedMeshIndex === null) {
-      return;
-    }
-
-    const transformation = transformations[selectedMeshIndex];
-
-    const deltaX = event.clientX - lastMousePosition.x;
-    const deltaY = event.clientY - lastMousePosition.y;
-
-    transformation.rotation.y += deltaX * 0.01;
-    transformation.rotation.x += deltaY * 0.01;
-
-    lastMousePosition = { x: event.clientX, y: event.clientY };
-  });
-
   window.addEventListener("keydown", (e) => {
-    if (selectedMeshIndex !== null) {
-      onKeyDown(e, transformations[selectedMeshIndex]);
-    }
+    selectedMeshIndex = onKeyDown(e, transformations, selectedMeshIndex);
   });
 }
 
