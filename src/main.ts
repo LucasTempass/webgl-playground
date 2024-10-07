@@ -11,6 +11,11 @@ import Camera from "./camera.ts";
 
 const camera = new Camera();
 
+async function getDefault() {
+  const res = await fetch("assets/models/book.obj");
+  return await res.text();
+}
+
 async function main() {
   const gl = getWebGLContext();
 
@@ -63,10 +68,10 @@ async function main() {
 
   gl.enable(gl.DEPTH_TEST);
 
-  const models = await parseSimpleObjects("assets/models/book.obj");
-  const meshes = models.map((m) => new Mesh(m));
+  let models = parseSimpleObjects(await getDefault());
+  let meshes = models.map((m) => new Mesh(m));
 
-  const transformations = meshes.map(() => ({
+  let transformations = meshes.map(() => ({
     rotation: { x: 0, y: 0, z: 0 },
     translation: { x: 0, y: 0, z: 0 },
     scale: 2,
@@ -74,7 +79,7 @@ async function main() {
 
   let selectedMeshIndex: number | null = 0;
 
-  const buffers = meshes.map((mesh) => {
+  let buffers = meshes.map((mesh) => {
     const vertexBuffer = gl.createBuffer();
     const indexBuffer = gl.createBuffer();
 
@@ -222,6 +227,40 @@ async function main() {
     lastMouseY = e.clientY;
 
     camera.rotate(deltaY * 0.001, deltaX * 0.001);
+  });
+
+  const fileInput = document.getElementById("fileInput") as HTMLInputElement;
+
+  fileInput.addEventListener("change", async (event) => {
+    const file = (event.target as HTMLInputElement).files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const text = await file.text();
+
+    models = parseSimpleObjects(text);
+    meshes = models.map((m) => new Mesh(m));
+
+    transformations = meshes.map(() => ({
+      rotation: { x: 0, y: 0, z: 0 },
+      translation: { x: 0, y: 0, z: 0 },
+      scale: 2,
+    }));
+
+    buffers = meshes.map((mesh) => {
+      const vertexBuffer = gl.createBuffer();
+      const indexBuffer = gl.createBuffer();
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, mesh.vertices, gl.STATIC_DRAW);
+
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indices, gl.STATIC_DRAW);
+
+      return { vertexBuffer, indexBuffer };
+    });
   });
 }
 
